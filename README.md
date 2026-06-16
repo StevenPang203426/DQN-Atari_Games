@@ -43,13 +43,19 @@ git clone https://github.com/AI-FDU/DQN-Atari_Games.git
 2. Install the required dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 ```
 
 The training script uses the Gymnasium API and requires Stable-Baselines3 2.x Atari wrappers. If `pip install -r requirements.txt` installs `stable-baselines3==1.2.0`, upgrade the runtime dependencies with:
 
 ```bash
-pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-license]==0.28.1"  "ale-py==0.8.1"
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-license]==0.28.1" "ale-py==0.8.1"
+```
+
+Optionally configure the Tsinghua PyPI mirror globally on the cloud machine before installation:
+
+```bash
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ## Play
