@@ -40,19 +40,24 @@ To run this project, you will need the following:
 git clone https://github.com/AI-FDU/DQN-Atari_Games.git
 ```
 
-2. Install the required dependencies:
+2. Install `uv` with the Tsinghua PyPI mirror:
 
 ```bash
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple uv
 ```
 
-The training script uses the Gymnasium API and requires Stable-Baselines3 2.x Atari wrappers. If `pip install -r requirements.txt` installs `stable-baselines3==1.2.0`, upgrade the runtime dependencies with:
+3. Create and sync the project environment:
 
 ```bash
-pip install -i https://pypi.tuna.tsinghua.edu.cn/simple "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-license]==0.28.1" "ale-py==0.8.1"
+uv venv --python 3.10
+uv sync
 ```
 
-Optionally configure the Tsinghua PyPI mirror globally on the cloud machine before installation:
+The project `pyproject.toml` configures Tsinghua PyPI as the default package index and installs the CUDA 11.3 PyTorch wheel from the official PyTorch index. If your cloud image already provides a working CUDA PyTorch environment, you can still use `uv run` after `uv sync` to keep the project commands consistent.
+
+`requirements.txt` is kept as a legacy fallback. Prefer `uv sync`; the old requirements file includes `stable-baselines3==1.2.0`, while this training script requires Stable-Baselines3 2.x Atari wrappers.
+
+Optionally configure the Tsinghua PyPI mirror globally on the cloud machine:
 
 ```bash
 pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
@@ -77,7 +82,7 @@ sh train.sh
 ```  
 or
 ```  
-python dqn_atari.py --exp-name MsPacman-v5 --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000
+uv run python dqn_atari.py --exp-name MsPacman-v5 --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000
 ```  
 
 If you want to change the game that you train, please edit the game environment name in `train.sh` file.
@@ -89,7 +94,7 @@ When `--save-model` is enabled, training saves the model under `runs/{run_name}/
 For a quick local smoke test before cloud training, reduce the step counts:
 
 ```bash
-python dqn_atari.py --exp-name MsPacman-smoke --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 1000 --learning-starts 100 --buffer-size 1000
+uv run python dqn_atari.py --exp-name MsPacman-smoke --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 1000 --learning-starts 100 --buffer-size 1000
 ```
 
 ## Training
