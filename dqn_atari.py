@@ -216,6 +216,7 @@ if __name__ == "__main__":
 
     if args.save_model:
         model_path = f"runs/{run_name}/{args.exp_name}.pth"
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
         torch.save(q_network.state_dict(), model_path)
         print(f"model saved to {model_path}")
 
