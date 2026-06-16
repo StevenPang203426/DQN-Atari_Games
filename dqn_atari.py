@@ -166,8 +166,7 @@ def validate_cuda_device(device):
         device_name = torch.cuda.get_device_name(device)
         raise RuntimeError(
             f"{device_name} requires CUDA architecture {required_arch}, but this PyTorch build only supports "
-            f"{', '.join(supported_arches)}. Use a cloud image with a PyTorch build that supports this GPU, "
-            "then recreate the project environment with `bash scripts/setup_cloud_image_torch.sh`. "
+            f"{', '.join(supported_arches)}. Install a PyTorch build that supports this GPU with `uv sync`, "
             "For a temporary pipeline check, run a CPU smoke test with `--cuda false`."
         )
 
@@ -177,8 +176,9 @@ if __name__ == "__main__":
 
     if sb3.__version__ < "2.0":
         raise ValueError(
-            """Stable-Baselines3 2.x is required. On the cloud image, recreate the environment with:
-        bash scripts/setup_cloud_image_torch.sh
+            """Stable-Baselines3 2.x is required. Recreate the uv environment with:
+        uv venv --python 3.10
+        uv sync
         """
         )
     
