@@ -159,14 +159,25 @@ def validate_cuda_device(device):
         return
 
     capability = torch.cuda.get_device_capability(device)
-    required_arch = f"sm_{capability[0]}{capability[1]}"
+    major, minor = capability
+    required_arch = f"sm_{major}{minor}"
     supported_arches = torch.cuda.get_arch_list()
 
-    if required_arch not in supported_arches:
+    has_compatible_arch = False
+    for arch in supported_arches:
+        if not arch.startswith("sm_"):
+            continue
+        arch_major = int(arch[3])
+        arch_minor = int(arch[4:])
+        if arch_major == major and arch_minor <= minor:
+            has_compatible_arch = True
+            break
+
+    if not has_compatible_arch:
         device_name = torch.cuda.get_device_name(device)
         raise RuntimeError(
             f"{device_name} requires CUDA architecture {required_arch}, but this PyTorch build only supports "
-            f"{', '.join(supported_arches)}. Install a PyTorch build that supports this GPU with `uv sync`, "
+            f"{', '.join(supported_arches)}. Install a PyTorch build that supports this GPU with `uv sync`. "
             "For a temporary pipeline check, run a CPU smoke test with `--cuda false`."
         )
 

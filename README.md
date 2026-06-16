@@ -53,7 +53,7 @@ uv venv --python 3.10
 uv sync
 ```
 
-The project `pyproject.toml` configures Tsinghua PyPI as the default package index for regular packages. On Linux, uv installs `torch==2.7.0+cu118` from the official PyTorch CUDA 11.8 wheel index so RTX 4080/Ada GPUs have `sm_89` support.
+The project `pyproject.toml` configures Tsinghua PyPI as the default package index for regular packages. On Linux, uv installs `torch==2.7.0+cu118` from the official PyTorch CUDA 11.8 wheel index for RTX 4080/Ada GPUs.
 
 Verify the project runtime before training:
 
@@ -61,9 +61,9 @@ Verify the project runtime before training:
 uv run python -c "import torch, cv2, moviepy, stable_baselines3; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(torch.cuda.get_arch_list()); print(cv2.__version__, stable_baselines3.__version__)"
 ```
 
-For RTX 4080, the output should include `sm_89` in `torch.cuda.get_arch_list()`.
+For RTX 4080, `sm_86` or `sm_89` in `torch.cuda.get_arch_list()` is acceptable because Ada GPUs can run compatible same-major CUDA cubins.
 
-If the environment was previously synced with a PyTorch build that does not include `sm_89`, refresh torch:
+If the environment was previously synced with a PyTorch build that does not include a compatible same-major architecture, refresh torch:
 
 ```bash
 uv lock --upgrade-package torch
