@@ -127,6 +127,25 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
     slope = (end_e - start_e) / duration
     return max(slope * t + start_e, end_e)
 
+
+def validate_cuda_device(device):
+    if device.type != "cuda":
+        return
+
+    capability = torch.cuda.get_device_capability(device)
+    required_arch = f"sm_{capability[0]}{capability[1]}"
+    supported_arches = torch.cuda.get_arch_list()
+
+    if required_arch not in supported_arches:
+        device_name = torch.cuda.get_device_name(device)
+        raise RuntimeError(
+            f"{device_name} requires CUDA architecture {required_arch}, but this PyTorch build only supports "
+            f"{', '.join(supported_arches)}. Install the CUDA 12.8 PyTorch wheel with "
+            "`uv lock --upgrade-package torch && uv sync --reinstall-package torch`, "
+            "or run a CPU smoke test with `--cuda false`."
+        )
+
+
 if __name__ == "__main__":
     import stable_baselines3 as sb3
 
@@ -146,6 +165,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
     device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
+    validate_cuda_device(device)
 
     envs = gym.vector.SyncVectorEnv(
         [make_env(args.env_id, args.seed + i, i, args.capture_video, run_name) for i in range(args.num_envs)]

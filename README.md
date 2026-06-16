@@ -53,15 +53,15 @@ uv venv --python 3.10
 uv sync
 ```
 
-The project `pyproject.toml` configures Tsinghua PyPI as the default package index. It uses `torch==2.7.0` for RTX 50-series compatibility and `opencv-python-headless` so Atari preprocessing does not require the system `libGL.so.1` package.
+The project `pyproject.toml` configures Tsinghua PyPI as the default package index for regular packages. On Linux it installs `torch==2.7.0+cu128` from the official PyTorch CUDA 12.8 wheel index for RTX 50-series compatibility, and uses `opencv-python-headless` so Atari preprocessing does not require the system `libGL.so.1` package.
 
 `requirements.txt` is kept as a legacy fallback. Prefer `uv sync`; the old requirements file includes `stable-baselines3==1.2.0`, while this training script requires Stable-Baselines3 2.x Atari wrappers.
 
-If you already created a `.venv` with the previous PyTorch 1.12 CUDA 11.3 configuration, refresh the uv environment:
+If you already created a `.venv` with a previous PyTorch configuration, refresh the uv environment:
 
 ```bash
-uv lock --upgrade-package torch --upgrade-package opencv-python-headless
-uv sync --reinstall-package torch --reinstall-package opencv-python-headless
+uv lock --upgrade-package torch --upgrade-package opencv-python-headless --upgrade-package setuptools
+uv sync --reinstall-package torch --reinstall-package opencv-python-headless --reinstall-package setuptools
 ```
 
 If video recording fails with `ModuleNotFoundError: No module named 'pkg_resources'`, refresh `setuptools`:
@@ -74,10 +74,10 @@ uv sync --reinstall-package setuptools
 Verify the cloud runtime before training:
 
 ```bash
-uv run python -c "import torch, cv2, moviepy; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(cv2.__version__)"
+uv run python -c "import torch, cv2, moviepy; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(torch.cuda.get_arch_list()); print(cv2.__version__)"
 ```
 
-For RTX 5090, `torch 2.7.0+cu126` can still warn that `sm_120` is unsupported. If CUDA kernels fail later, either install a CUDA 12.8 PyTorch wheel on that cloud image or run the smoke test with `--cuda false` to validate the project pipeline before changing the GPU runtime.
+For RTX 5090, the verification output must include `sm_120` in `torch.cuda.get_arch_list()`. If the cloud network blocks `https://download.pytorch.org/whl/cu128`, configure a proxy or use a cloud image with CUDA 12.8 PyTorch preinstalled. To validate the project pipeline before fixing GPU runtime, run the smoke test with `--cuda false`.
 
 Optionally configure the Tsinghua PyPI mirror globally on the cloud machine:
 
