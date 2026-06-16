@@ -28,23 +28,23 @@ uv venv --python "$(command -v python)" --system-site-packages
 source .venv/bin/activate
 
 uv pip install -i https://pypi.tuna.tsinghua.edu.cn/simple \
-  "gymnasium[atari,accept-rom-license]==0.28.1" \
-  "ale-py==0.8.1" \
-  "numpy==1.21.6" \
-  "opencv-python-headless==4.7.0.72" \
-  "moviepy==1.0.3" \
-  "imageio==2.28.1" \
-  "imageio-ffmpeg==0.3.0" \
-  "pygame==2.1.0" \
-  "setuptools==67.7.2" \
-  "tensorboard==2.11.2" \
-  "cloudpickle==2.2.1" \
-  "pandas==1.3.5" \
-  "matplotlib==3.5.3" \
-  "huggingface-hub==0.11.1"
+  "gymnasium[atari]>=1.2.0" \
+  "ale-py>=0.11.0" \
+  "numpy" \
+  "opencv-python-headless" \
+  "moviepy" \
+  "imageio" \
+  "imageio-ffmpeg" \
+  "pygame" \
+  "setuptools" \
+  "tensorboard" \
+  "cloudpickle" \
+  "pandas" \
+  "matplotlib" \
+  "huggingface-hub"
 
 uv pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --no-deps \
-  "stable-baselines3==2.0.0a1"
+  "stable-baselines3>=2.7.0"
 
 uv run --no-sync python - <<'PY'
 import cv2

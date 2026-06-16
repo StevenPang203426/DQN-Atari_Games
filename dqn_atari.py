@@ -21,6 +21,30 @@ from stable_baselines3.common.buffers import ReplayBuffer
 from torch.utils.tensorboard import SummaryWriter
 
 
+def register_ale_envs():
+    try:
+        import ale_py
+    except ImportError:
+        return
+
+    if hasattr(gym, "register_envs"):
+        gym.register_envs(ale_py)
+
+
+def grayscale_observation(env):
+    wrapper = getattr(gym.wrappers, "GrayScaleObservation", None)
+    if wrapper is None:
+        wrapper = gym.wrappers.GrayscaleObservation
+    return wrapper(env)
+
+
+def frame_stack(env, num_stack):
+    wrapper = getattr(gym.wrappers, "FrameStack", None)
+    if wrapper is not None:
+        return wrapper(env, num_stack)
+    return gym.wrappers.FrameStackObservation(env, stack_size=num_stack)
+
+
 def parse_args():
     # fmt: off
     parser = argparse.ArgumentParser()
@@ -77,6 +101,8 @@ def parse_args():
 
 def make_env(env_id, seed, idx, capture_video, run_name):
     def thunk():
+        register_ale_envs()
+
         if capture_video and idx == 0:
             env = gym.make(env_id, render_mode="rgb_array")
             env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
@@ -93,8 +119,8 @@ def make_env(env_id, seed, idx, capture_video, run_name):
         
         env = ClipRewardEnv(env)
         env = gym.wrappers.ResizeObservation(env, (84, 84))
-        env = gym.wrappers.GrayScaleObservation(env)
-        env = gym.wrappers.FrameStack(env, 4)
+        env = grayscale_observation(env)
+        env = frame_stack(env, 4)
         env.action_space.seed(seed)
 
         return env
@@ -140,9 +166,9 @@ def validate_cuda_device(device):
         device_name = torch.cuda.get_device_name(device)
         raise RuntimeError(
             f"{device_name} requires CUDA architecture {required_arch}, but this PyTorch build only supports "
-            f"{', '.join(supported_arches)}. Install the CUDA 12.8 PyTorch wheel with "
-            "`uv lock --upgrade-package torch && uv sync --reinstall-package torch`, "
-            "or run a CPU smoke test with `--cuda false`."
+            f"{', '.join(supported_arches)}. Use a cloud image with a PyTorch build that supports this GPU, "
+            "then recreate the project environment with `bash scripts/setup_cloud_image_torch.sh`. "
+            "For a temporary pipeline check, run a CPU smoke test with `--cuda false`."
         )
 
 
@@ -151,8 +177,8 @@ if __name__ == "__main__":
 
     if sb3.__version__ < "2.0":
         raise ValueError(
-            """On going migration: run the following command to install new dependencies
-        pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-license]==0.28.1"  "ale-py==0.8.1"
+            """Stable-Baselines3 2.x is required. On the cloud image, recreate the environment with:
+        bash scripts/setup_cloud_image_torch.sh
         """
         )
     

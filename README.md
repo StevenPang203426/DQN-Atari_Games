@@ -65,6 +65,8 @@ bash scripts/setup_cloud_image_torch.sh
 
 This path intentionally does not run `uv sync`: Stable-Baselines3 declares `torch` as a dependency, so `uv sync` will try to resolve and download PyTorch again. The setup script installs Stable-Baselines3 with `--no-deps` and uses `uv venv --system-site-packages` so `uv run --no-sync` imports the cloud image PyTorch.
 
+The script also avoids the old `ale-py==0.8.1` pin because that wheel is not available for Python 3.13. It installs Python-3.13-compatible Gymnasium/ALE packages from the Tsinghua mirror instead.
+
 Verify the project runtime before training:
 
 ```bash
