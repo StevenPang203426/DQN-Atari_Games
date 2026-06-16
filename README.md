@@ -53,9 +53,22 @@ uv venv --python 3.10
 uv sync
 ```
 
-The project `pyproject.toml` configures Tsinghua PyPI as the default package index and installs the CUDA 11.3 PyTorch wheel from the official PyTorch index. If your cloud image already provides a working CUDA PyTorch environment, you can still use `uv run` after `uv sync` to keep the project commands consistent.
+The project `pyproject.toml` configures Tsinghua PyPI as the default package index. It uses `torch==2.7.0` for RTX 50-series compatibility and `opencv-python-headless` so Atari preprocessing does not require the system `libGL.so.1` package.
 
 `requirements.txt` is kept as a legacy fallback. Prefer `uv sync`; the old requirements file includes `stable-baselines3==1.2.0`, while this training script requires Stable-Baselines3 2.x Atari wrappers.
+
+If you already created a `.venv` with the previous PyTorch 1.12 CUDA 11.3 configuration, refresh the uv environment:
+
+```bash
+uv lock --upgrade-package torch --upgrade-package opencv-python-headless
+uv sync --reinstall-package torch --reinstall-package opencv-python-headless
+```
+
+Verify the cloud runtime before training:
+
+```bash
+uv run python -c "import torch, cv2, moviepy; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(cv2.__version__)"
+```
 
 Optionally configure the Tsinghua PyPI mirror globally on the cloud machine:
 
