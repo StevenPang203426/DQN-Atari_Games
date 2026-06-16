@@ -64,11 +64,20 @@ uv lock --upgrade-package torch --upgrade-package opencv-python-headless
 uv sync --reinstall-package torch --reinstall-package opencv-python-headless
 ```
 
+If video recording fails with `ModuleNotFoundError: No module named 'pkg_resources'`, refresh `setuptools`:
+
+```bash
+uv lock --upgrade-package setuptools
+uv sync --reinstall-package setuptools
+```
+
 Verify the cloud runtime before training:
 
 ```bash
 uv run python -c "import torch, cv2, moviepy; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(cv2.__version__)"
 ```
+
+For RTX 5090, `torch 2.7.0+cu126` can still warn that `sm_120` is unsupported. If CUDA kernels fail later, either install a CUDA 12.8 PyTorch wheel on that cloud image or run the smoke test with `--cuda false` to validate the project pipeline before changing the GPU runtime.
 
 Optionally configure the Tsinghua PyPI mirror globally on the cloud machine:
 
