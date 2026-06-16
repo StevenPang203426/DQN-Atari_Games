@@ -53,7 +53,7 @@ uv venv --python 3.10
 uv sync
 ```
 
-The project `pyproject.toml` configures Tsinghua PyPI as the default package index and lets uv install `torch==2.7.0`. This route is intended for an RTX 4080 cloud machine with Python 3.10.
+The project `pyproject.toml` configures Tsinghua PyPI as the default package index for regular packages. On Linux, uv installs `torch==2.7.0+cu118` from the official PyTorch CUDA 11.8 wheel index so RTX 4080/Ada GPUs have `sm_89` support.
 
 Verify the project runtime before training:
 
@@ -62,6 +62,13 @@ uv run python -c "import torch, cv2, moviepy, stable_baselines3; print(torch.__v
 ```
 
 For RTX 4080, the output should include `sm_89` in `torch.cuda.get_arch_list()`.
+
+If the environment was previously synced with a PyTorch build that does not include `sm_89`, refresh torch:
+
+```bash
+uv lock --upgrade-package torch
+uv sync --reinstall-package torch
+```
 
 If video recording fails with `ModuleNotFoundError: No module named 'pkg_resources'`, refresh `setuptools`:
 
