@@ -46,6 +46,8 @@ git clone https://github.com/AI-FDU/DQN-Atari_Games.git
 pip install -r requirements.txt
 ```
 
+The training script uses the Gymnasium API and requires Stable-Baselines3 2.x Atari wrappers. If `pip install -r requirements.txt` installs `stable-baselines3==1.2.0`, upgrade the runtime dependencies with:
+
 ```bash
 pip install "stable_baselines3==2.0.0a1" "gymnasium[atari,accept-rom-license]==0.28.1"  "ale-py==0.8.1"
 ```
@@ -69,14 +71,20 @@ sh train.sh
 ```  
 or
 ```  
-python dqn_atari.py --exp-name MsPacman-v5 --capture-video --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000 --hf-entity adhisetiawan
+python dqn_atari.py --exp-name MsPacman-v5 --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000
 ```  
 
 If you want to change the game that you train, please edit the game environment name in `train.sh` file.
 
 3. Evaluate the trained agent:
 
-Evaluation process has been done during end of training, but if you want to run evaluation separately, just run `dqn_eval.py` and change the game environment.
+When `--save-model` is enabled, training saves the model under `runs/{run_name}/` and runs evaluation at the end. With `--capture-video`, generated videos are stored under `videos/{run_name}/` and `videos/{run_name}-eval/`.
+
+For a quick local smoke test before cloud training, reduce the step counts:
+
+```bash
+python dqn_atari.py --exp-name MsPacman-smoke --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 1000 --learning-starts 100 --buffer-size 1000
+```
 
 ## Training
 
