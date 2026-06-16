@@ -46,38 +46,36 @@ git clone https://github.com/AI-FDU/DQN-Atari_Games.git
 pip install -i https://pypi.tuna.tsinghua.edu.cn/simple uv
 ```
 
-3. Create and sync the project environment:
+3. Use the cloud image PyTorch runtime.
+
+First, confirm that the cloud image Python already has a CUDA PyTorch build for the GPU:
 
 ```bash
-uv venv --python 3.10
-uv sync
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(torch.cuda.get_arch_list())"
 ```
 
-The project `pyproject.toml` configures Tsinghua PyPI as the default package index for regular packages. On Linux it installs `torch==2.7.0+cu128` from the official PyTorch CUDA 12.8 wheel index for RTX 50-series compatibility, and uses `opencv-python-headless` so Atari preprocessing does not require the system `libGL.so.1` package.
+For RTX 5090, the output must include `sm_120` in `torch.cuda.get_arch_list()`. If it does not, switch to a cloud image with CUDA 12.8 PyTorch preinstalled.
 
-`requirements.txt` is kept as a legacy fallback. Prefer `uv sync`; the old requirements file includes `stable-baselines3==1.2.0`, while this training script requires Stable-Baselines3 2.x Atari wrappers.
-
-If you already created a `.venv` with a previous PyTorch configuration, refresh the uv environment:
+Then create a project `.venv` that can see the cloud image PyTorch and install only the non-PyTorch dependencies:
 
 ```bash
-uv lock --upgrade-package torch --upgrade-package opencv-python-headless --upgrade-package setuptools
-uv sync --reinstall-package torch --reinstall-package opencv-python-headless --reinstall-package setuptools
+[ -d .venv ] && mv .venv ".venv-old-$(date +%s)" || true
+bash scripts/setup_cloud_image_torch.sh
+```
+
+This path intentionally does not run `uv sync`: Stable-Baselines3 declares `torch` as a dependency, so `uv sync` will try to resolve and download PyTorch again. The setup script installs Stable-Baselines3 with `--no-deps` and uses `uv venv --system-site-packages` so `uv run --no-sync` imports the cloud image PyTorch.
+
+Verify the project runtime before training:
+
+```bash
+uv run --no-sync python -c "import torch, cv2, moviepy, stable_baselines3; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(torch.cuda.get_arch_list()); print(cv2.__version__, stable_baselines3.__version__)"
 ```
 
 If video recording fails with `ModuleNotFoundError: No module named 'pkg_resources'`, refresh `setuptools`:
 
 ```bash
-uv lock --upgrade-package setuptools
-uv sync --reinstall-package setuptools
+uv pip install -i https://pypi.tuna.tsinghua.edu.cn/simple setuptools==67.7.2
 ```
-
-Verify the cloud runtime before training:
-
-```bash
-uv run python -c "import torch, cv2, moviepy; print(torch.__version__, torch.version.cuda, torch.cuda.is_available()); print(torch.cuda.get_device_name(0)); print(torch.cuda.get_arch_list()); print(cv2.__version__)"
-```
-
-For RTX 5090, the verification output must include `sm_120` in `torch.cuda.get_arch_list()`. If the cloud network blocks `https://download.pytorch.org/whl/cu128`, configure a proxy or use a cloud image with CUDA 12.8 PyTorch preinstalled. To validate the project pipeline before fixing GPU runtime, run the smoke test with `--cuda false`.
 
 Optionally configure the Tsinghua PyPI mirror globally on the cloud machine:
 
@@ -104,7 +102,7 @@ sh train.sh
 ```  
 or
 ```  
-uv run python dqn_atari.py --exp-name MsPacman-v5 --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000
+uv run --no-sync python dqn_atari.py --exp-name MsPacman-v5 --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 5000000 --buffer-size 400000
 ```  
 
 If you want to change the game that you train, please edit the game environment name in `train.sh` file.
@@ -116,7 +114,7 @@ When `--save-model` is enabled, training saves the model under `runs/{run_name}/
 For a quick local smoke test before cloud training, reduce the step counts:
 
 ```bash
-uv run python dqn_atari.py --exp-name MsPacman-smoke --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 1000 --learning-starts 100 --buffer-size 1000
+uv run --no-sync python dqn_atari.py --exp-name MsPacman-smoke --capture-video --save-model --env-id ALE/MsPacman-v5 --total-timesteps 1000 --learning-starts 100 --buffer-size 1000
 ```
 
 ## Training
